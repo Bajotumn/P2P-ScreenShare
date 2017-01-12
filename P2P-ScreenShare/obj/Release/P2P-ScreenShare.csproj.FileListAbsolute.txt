@@ -1,0 +1,23 @@
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\bin\Release\P2P-ScreenShare.exe
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\bin\Release\P2P-ScreenShare.pdb
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\ResolveAssemblyReference.cache
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.frmCaptureArea.resources
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.frmImageReceiver.resources
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.frmMain.resources
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.Properties.Resources.resources
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P-ScreenShare.csproj.GenerateResource.Cache
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P-ScreenShare.exe
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P-ScreenShare.pdb
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.SenderControl.resources
+D:\Coding\Visual Studio 2008\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.ReceiverControl.resources
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P-ScreenShare.exe
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P-ScreenShare.pdb
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\bin\Release\P2P-ScreenShare.exe
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\bin\Release\P2P-ScreenShare.pdb
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.frmCaptureArea.resources
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.frmImageReceiver.resources
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.frmMain.resources
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.ReceiverControl.resources
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.SenderControl.resources
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P_ScreenShare.Properties.Resources.resources
+C:\Users\jacob\Google Drive\Code\Projects\P2P-ScreenShare\P2P-ScreenShare\obj\Release\P2P-ScreenShare.csproj.GenerateResource.Cache
