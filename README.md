@@ -12,3 +12,7 @@ Packet structure is VERY simple with only 2 packet types implemented.
  * EMPTY
  
 This project also includes a queued console writer for debug purposes, which was almost a separate project altogether...
+
+![Receiver Screen](/Screens/receiver.png?raw=true)
+![Senders Screen](Screens/senders.png?raw=true)
+![Overall Screen](/Screens/full.png?raw=true)
