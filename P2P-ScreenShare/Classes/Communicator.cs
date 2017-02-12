@@ -25,11 +25,9 @@ namespace P2P_ScreenShare.Communications {
         }
 
         internal void SetSocket(Socket s) {
-            //s.SendTimeout = 30000;
-            //s.ReceiveTimeout = 30000;
             this.aSock = s;
         }
-        #region sending methods
+        #region Sending Methods
         internal void Send(Packet packet) {
 
             WriteLine("Sending a(n) ({0}) packet {1} bytes long.", packet.PacketType, packet.Length);
@@ -49,10 +47,14 @@ namespace P2P_ScreenShare.Communications {
                 s.Receive(header, Packet.HEADER_SIZE, SocketFlags.None);
                 PacketBuffer pBuff = new PacketBuffer(header);
                 int contentLength = BitConverter.ToInt32(header, 0);
+
+                // Start the stopwatch after receiving the header
+                // Recieve is blocking, it'll wait for data before continuing
+                // We don't want our stopwatch to count the delay between image packets
                 Stopwatch stopWatch = new Stopwatch();
                 stopWatch.Start();
                 do {
-                    byte[] receiveBuffer = new Byte[s.Available];
+                    byte[] receiveBuffer = new byte[s.Available];
                     s.Receive(receiveBuffer, receiveBuffer.Length, SocketFlags.None);
                     pBuff.Append(receiveBuffer);
                 } while (pBuff.Length < contentLength);
@@ -60,66 +62,37 @@ namespace P2P_ScreenShare.Communications {
                 WriteLine("Received {0} bytes of data from {1:0,000} in {2} ms", contentLength, s.RemoteEndPoint, stopWatch.ElapsedMilliseconds);
                 return new Packet(pBuff.Buffer);
             } catch (Exception e) {
-                WriteLine(e.Message);
+                WriteError(e);
             }
             return null;
         }
         #endregion
         #region Abstract variables
-        public Socket aSock = null;
-        public IPEndPoint aEndPoint = null;
-        public ConsoleColor WriteColor = Console.ForegroundColor;
+        internal Socket aSock = null;
+        internal IPEndPoint aEndPoint = null;
+        internal ConsoleColor WriteColor = Console.ForegroundColor;
         #endregion
         #region Private variables
         private string _myname = "CommBase";
         #endregion
-        #region Console writing accessors
-        private void Name() {
-            /*
-            Console.ForegroundColor = WriteColor;
-            Console.Write(MyName);
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.Write("[{0}]", System.Threading.Thread.CurrentThread.ManagedThreadId);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("::");
-            Console.ForegroundColor = WriteColor;
-            */
-        }
-        /*
-        internal void WriteNoName(string format, params object[] args) {
-            Console.Write(format, args);
-        }
-        internal void WriteNoName(object data) {
-            Console.Write(data);
-        }
-        */
+        #region Console writing Methods
+        
         internal void Write(string format, params object[] args) {
-            //Name();
-            //Console.Write(format, args);
+
             DebugConsole.Write(WriteColor, MyName, format, args);
         }
         internal void Write(object data) {
-            //Name();
-            //Console.Write(data);
+
             DebugConsole.Write(WriteColor, MyName, data);
         }
-        /*
-        internal void WriteLineNoName(string format, params object[] args) {
-            Console.WriteLine(format, args);
-        }
-        internal void WriteLineNoName(object data) {
-            Console.WriteLine(data);
-        }
-        */
         internal void WriteLine(string format, params object[] args) {
-            //Name();
-            //Console.WriteLine(format, args);
             DebugConsole.WriteLine(WriteColor,MyName,format, args);
         }
         internal void WriteLine(object data) {
-            //Name();
-            //Console.WriteLine(data);
             DebugConsole.WriteLine(WriteColor, MyName, data);
+        }
+        internal void WriteError(Exception ex) {
+            DebugConsole.WriteError(WriteColor, MyName,ex);
         }
         #endregion
     }

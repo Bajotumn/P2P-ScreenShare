@@ -144,10 +144,13 @@ namespace P2P_ScreenShare {
             SetStatus("Disconnected");
             btnControlSender.Text = "Connect";
             DisableEnableItems(true);
-            if (!((frmMain)this.ParentForm).SenderConnected) {
-                Program.captureArea.Hide();
+            if ((frmMain)this.ParentForm != null) {
+                if (!((frmMain)this.ParentForm).SenderConnected) {
+                    Program.captureArea.Hide();
+                }
             }
         }
+        
 
         void commDataSender_ReceivedPingResponse(object sender, EventArgs e) {
             if (this.InvokeRequired) {
@@ -174,16 +177,14 @@ namespace P2P_ScreenShare {
                 this.Invoke(new Sender.ConnectionErrorHandler(commDataSender_ConnectionError), ex);
                 return;
             }
-            if (ConnectionError != null) {
-                ConnectionError(this, ex);
-            }
+            ConnectionError?.Invoke(this, ex);
             showError(ex);
             DisableEnableItems(true);
             SetStatus("<Connection Error>");
         }
 
         private void showError(Exception ex) {
-            this.ttConnectionError.Show(GetErrorString(ex), picStatus, 0, -this.Height);
+            this.ttConnectionError.Show(GetErrorString(ex), picStatus, 0, -this.Height, 3000);
         }
 
         private string GetErrorString(Exception ex) {
@@ -191,7 +192,7 @@ namespace P2P_ScreenShare {
         }
 
         private void txtPort_TextChanged(object sender, EventArgs e) {
-            Int32 i = Port;
+            int i = Port;
             if (!Int32.TryParse(txtPort.Text, out i)) {
                 MessageBox.Show("The string entered was not a number");
             }

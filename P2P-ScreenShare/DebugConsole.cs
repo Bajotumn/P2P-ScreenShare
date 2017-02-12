@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -17,12 +17,22 @@ namespace P2P_ScreenShare {
         public object Data { get { return _data; } set { _data = value; } }
         private int _thread;
         public int ThreadID { get { return _thread; } set { _thread = value; } }
+        public Exception Ex{get;set;}
 
         public ConsoleWrite(ConsoleColor color, object src, object data) {
             this.Color = color;
             this.Source = src;
             this.Data = data;
             this.ThreadID = Thread.CurrentThread.ManagedThreadId;
+        }
+        public ConsoleWrite(ConsoleColor color, object src, object data, Exception ex) {
+            this.Color = color;
+            this.Source = src;
+            this.Data = data;
+            this.ThreadID = Thread.CurrentThread.ManagedThreadId;
+
+            this.Ex = ex;
+
         }
     }
     public static class DebugConsole {
@@ -58,7 +68,7 @@ namespace P2P_ScreenShare {
 
         private static Thread writerThread = new Thread(new ThreadStart(write));
         private static bool processQueue = false;
-        private static Queue<ConsoleWrite> writeQueue = new Queue<ConsoleWrite>();
+        private static ConcurrentQueue<ConsoleWrite> writeQueue = new ConcurrentQueue<ConsoleWrite>();
 
 
         public static void Init() {
@@ -70,14 +80,13 @@ namespace P2P_ScreenShare {
         public static void Stop() {
             HideConsoleWindow();
             processQueue = false;
-            writerThread.Abort();
         }
         private static void write() {
             ConsoleWrite qCurrent = null;
             do {
 
                 if (writeQueue.Count > 0) {
-                    if ((qCurrent = writeQueue.Dequeue()) != null) { 
+                    if (writeQueue.TryDequeue(out qCurrent)) { 
                     
                         //Set restore color
                         ConsoleColor originalColor = Console.ForegroundColor;
@@ -94,10 +103,25 @@ namespace P2P_ScreenShare {
                         //Write the divider in yellow
                         Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.Write("::");
-
+                        
                         //Write the data in the passed color
                         Console.ForegroundColor = qCurrent.Color;
                         Console.Write(qCurrent.Data);
+
+                        //Is this an exception?
+                        if(qCurrent.Ex != null) {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.Write(qCurrent.Ex.Message);
+
+                            Console.ForegroundColor = originalColor;
+                            Console.Write(" : \r\n");
+
+                            Console.ForegroundColor = ConsoleColor.DarkRed;
+                            Console.Write(qCurrent.Ex.StackTrace);
+
+                            //Exceptions always write line
+                            Console.Write("\r\n");
+                        }
 
                         //Restore the color
                         Console.ForegroundColor = originalColor;
@@ -145,6 +169,31 @@ namespace P2P_ScreenShare {
             _queueWrite(color, src, data.ToString() + "\r\n");
         }
 
+        /// <summary>
+        /// Write an object's string representation to the console with a \r\n
+        /// </summary>
+        /// <param name="color">Color to write in</param>
+        /// <param name="src">Originating object</param>
+        /// <param name="ex">Exception to write</param>
+        public static void WriteError(ConsoleColor color, object src, Exception ex) {
+            _queueError(color, src, String.Empty, ex);
+        }
+
+        /// <summary>
+        /// Write an object's string representation to the console with a \r\n
+        /// </summary>
+        /// <param name="color">Color to write in</param>
+        /// <param name="src">Originating object</param>
+        /// <param name="data">Additional data to write before exception data</param>
+        /// <param name="ex">Exception to write</param>
+        public static void WriteError(ConsoleColor color, object src, object data, Exception ex) {
+            _queueError(color, src, data.ToString(), ex);
+        }
+
+        private static void _queueError(ConsoleColor color, object src, string data, Exception ex) {
+            ConsoleWrite item = new ConsoleWrite(color, src, data, ex);
+            writeQueue.Enqueue(item);
+        }
         private static void _queueWrite(ConsoleColor color, object src, string data) {
 #if DEBUG
             ConsoleWrite item = new ConsoleWrite(color, src, data);

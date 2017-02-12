@@ -33,10 +33,6 @@ namespace P2P_ScreenShare.Communications {
             SetSocket(pClient.Client);
         }
 
-        ~Sender() {
-            Disconnect();
-        }
-
         public void SendImage(Image img) {
             if (img != null) {
                 Packet pack = new Packet(imageToByteArray(img), Packet.tPacketType.Image);
@@ -67,12 +63,11 @@ namespace P2P_ScreenShare.Communications {
                 ConnectionComplete?.Invoke(this, new EventArgs());
             } catch (SocketException e) {
                 ConnectionError?.Invoke(e);
+                WriteError(e);
             }
             if (this.tPing != null) {
                 this.tPing.Start();
             }
-            Program.killThread(this.tMakeConnection);
-            tMakeConnection = null;
         }
         private void ReceiveData() {
             Packet pack = Receive(this.aSock);
@@ -91,10 +86,10 @@ namespace P2P_ScreenShare.Communications {
             ReceivedPingResponse?.Invoke(this, new EventArgs());
         }
         private void SendPing() {
-            while (true) {
-                this.Send(new Packet(new byte[] { 0x00 }, Packet.tPacketType.Ping));
+            while (this.Connected) {
+                this.Send(new Packet(new byte[32], Packet.tPacketType.Ping));
                 ReceiveData();
-                Thread.Sleep(1000);
+                Thread.Sleep(5000);
             }
         }
 
@@ -103,8 +98,6 @@ namespace P2P_ScreenShare.Communications {
             if (this.ConnectionClosed != null) {
                 ConnectionClosed(this, new EventArgs());
             }
-            Program.killThread(this.tMakeConnection);
-            Program.killThread(this.tPing);
             if (this.pClient != null) {
                 if (this.pClient.Client != null) {
                     this.pClient.Client.Close();
@@ -112,6 +105,12 @@ namespace P2P_ScreenShare.Communications {
 
                 this.pClient.Close();
             }
+        }
+        public void Cleanup() {
+            this.ConnectionClosed = null;
+            this.ConnectionComplete = null;
+            this.ConnectionError = null;
+            this.ReceivedPingResponse = null;
         }
     }
 }

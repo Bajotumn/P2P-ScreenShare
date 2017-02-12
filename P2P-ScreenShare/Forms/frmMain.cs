@@ -15,14 +15,12 @@ namespace P2P_ScreenShare {
         #region Variables
 
         #region Public
+        private bool SenderIsConnected(SenderControl s) {
+            return s.Connected;
+        }
         public bool SenderConnected {
             get {
-                bool senderConnected = false;
-                foreach (SenderControl sCon in commDataSenderList) {
-                    senderConnected = sCon.Connected;
-                    if (senderConnected) { break; }
-                }
-                return senderConnected;
+                return commDataSenderList.TrueForAll(SenderIsConnected);
             }
         }
         /// <summary>
@@ -88,10 +86,15 @@ namespace P2P_ScreenShare {
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e) {
             if (commDataReceiver != null) {
                 commDataReceiver.Stop();
+                commDataReceiver.Cleanup();
             }
-            commDataSenderList.ForEach(new Action<SenderControl>(DisconnectSender));
+            
+            commDataSenderList.ForEach(new Action<SenderControl>(CloseSender));
             SaveSettings();
-            Environment.Exit(0);
+            foreach(frmImageReceiver frm in imageReceivers.Values) {
+                frm.Close();
+            }
+            Program.captureArea.Close();
         }
         private void cboTimerResolution_TextChanged(object sender, EventArgs e) {
             double d = (double)(tmrImageCapture.Interval / 1000);
@@ -151,10 +154,12 @@ namespace P2P_ScreenShare {
             sCon.SendImage(imgCapture);
         }
 
-        private void DisconnectSender(SenderControl sCon) {
+        private void CloseSender(SenderControl sCon) {
             if (sCon.commDataSender != null) {
                 sCon.commDataSender.Disconnect();
+                sCon.commDataSender.Cleanup();
             }
+            commDataSenderList.Remove(sCon);
         }
 
         private void ImageCaptureAndSendController() {

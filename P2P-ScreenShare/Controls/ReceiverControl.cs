@@ -136,7 +136,6 @@ namespace P2P_ScreenShare {
                 commDataReceiver.Start();
                 SetStatus("Listening");
                 btnControlReceiver.Text = "Stop Listening";
-
             } else {
                 commDataReceiver.Stop();
                 SetStatus("<Offline>");

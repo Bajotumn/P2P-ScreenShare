@@ -55,12 +55,12 @@ namespace P2P_ScreenShare.Communications {
             }
         }
         public void Append(byte[] data) {
-            int tackStart = Buffer.Length;
             ResizeBuffer(Buffer.Length + data.Length);
             data.CopyTo(Buffer, Buffer.Length - 1);
         }
-        public byte[] GetBytes() {
-            return Buffer;
+
+        public static implicit operator byte[](Packet p) {
+            return p.Buffer;
         }
     }
 }

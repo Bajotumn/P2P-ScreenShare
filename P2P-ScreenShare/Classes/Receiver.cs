@@ -12,7 +12,7 @@ namespace P2P_ScreenShare.Communications {
     /// A base class for receivers. Extends Communicator.
     /// </summary>
     public class Receiver : Communicator {
-        private TcpListener pListener = null;
+        private TcpListenerEx pListener = null;
         /// <summary>
         /// If the server is listening this is true if not or if null it is false
         /// </summary>
@@ -21,7 +21,7 @@ namespace P2P_ScreenShare.Communications {
                 if (pListener == null) {
                     return false;
                 }
-                return this.pListener.Server.IsBound;
+                return this.pListener.Active;
             }
         }
         public delegate void ImageReceivedHandler(IPEndPoint dSource, Image dImageReceived);
@@ -34,30 +34,32 @@ namespace P2P_ScreenShare.Communications {
         public event ClientEventHandler ClientDisconnected = null;
 
         private Thread ServerListenerThread = null;
-        private List<Thread> ClientCommunicationThreads = new List<Thread>();
+        private List<TcpClient> ConnectedClients = new List<TcpClient>();
         public Receiver(string pIP, string pPort) {
             MyName = "Receiver";
             WriteColor = ConsoleColor.Cyan;
             SetEndPoint(pIP, pPort);
-            this.pListener = new TcpListener(this.aEndPoint);
+            this.pListener = new TcpListenerEx(this.aEndPoint);
             SetSocket(pListener.Server);
             ServerListenerThread = new Thread(new ThreadStart(ServerListenHandler));
-        }
-        ~Receiver() {
-            Stop();
         }
 
         private void ServerListenHandler() {
             WriteLine("Server Listening on " + this.aEndPoint);
-            while (true) {
-                TcpClient cli = this.pListener.AcceptTcpClient();
-                if (ClientConnected != null) {
-                    ClientConnected((IPEndPoint)cli.Client.RemoteEndPoint);
+            while (this.pListener.Active) {
+                try {
+                    TcpClient cli = this.pListener.AcceptTcpClient();
+                    ClientConnected?.Invoke((IPEndPoint)cli.Client.RemoteEndPoint);
+                    WriteLine("Client[" + cli.Client.RemoteEndPoint.ToString() + "] connected!");
+                    Thread cliComm = new Thread(new ParameterizedThreadStart(ClientCommunicationHandler));
+                    ConnectedClients.Add(cli);
+                    cliComm.Start(cli);
+                } catch (SocketException sockEx) {
+                    if (sockEx.ErrorCode != 10004) //WSACancelBlockingCall
+                        WriteLine(sockEx);
+                }catch (ObjectDisposedException disposeEx) {
+                    WriteLine(disposeEx);
                 }
-                WriteLine("Client[" + cli.Client.RemoteEndPoint.ToString() + "] connected!");
-                Thread cliComm = new Thread(new ParameterizedThreadStart(ClientCommunicationHandler));
-                ClientCommunicationThreads.Add(cliComm);
-                cliComm.Start(cli);
             }
         }
 
@@ -73,7 +75,7 @@ namespace P2P_ScreenShare.Communications {
                         if (!ParseReceivedData(packet, sock)) {
                             WriteLine("The packet was not valid.");
                         } else {
-                            tClient.Client.Send(new Packet(new byte[0x00], Packet.tPacketType.EMPTY).GetBytes());
+                            tClient.Client.Send(new Packet(new byte[0x00], Packet.tPacketType.EMPTY));
                         }
                     } else {
                         break;
@@ -83,13 +85,18 @@ namespace P2P_ScreenShare.Communications {
                     break;
                 }
             }
-
-            if (ClientDisconnected != null) {
-                ClientDisconnected(cliEndPoint);
+            if (ConnectedClients.Contains(tClient)) {
+                ConnectedClients.Remove(tClient);
             }
+            ClientDisconnected?.Invoke(cliEndPoint);
+            
             WriteLine("Closing connection to client [" + cliEndPoint + "]");
-            tClient.Client.Close();
-            tClient.Close();
+            if (tClient != null) {
+                if (tClient.Client != null) {
+                    tClient.Client.Close();
+                }
+                tClient.Close();
+            }
         }
 
         private bool ParseReceivedData(Packet packet, Socket sock) {
@@ -99,7 +106,7 @@ namespace P2P_ScreenShare.Communications {
                 case Packet.tPacketType.Ping:
                     action = ("Responding");
                     isValidPacket = true;
-                    sock.Send(packet.GetBytes());
+                    sock.Send(packet);
                     break;
                 case Packet.tPacketType.ImageRequest:
 
@@ -157,11 +164,20 @@ namespace P2P_ScreenShare.Communications {
         }
         public void Stop() {
             WriteLine("Stopped listening");
-            Program.killThread(ServerListenerThread);
-            ClientCommunicationThreads.ForEach(new Action<Thread>(Program.killThread));
+            ConnectedClients.ForEach(new Action<TcpClient>(CloseClientConnection));
             this.pListener.Server.Close();
             this.pListener.Stop();
+        }
 
+        public void Cleanup() {
+            this.ClientConnected = null;
+            this.ClientDisconnected = null;
+            this.ImageReceived = null;
+            this.ImageRequested = null;
+        }
+
+        private void CloseClientConnection(TcpClient c) {
+            c.Close();
         }
     }
 }
